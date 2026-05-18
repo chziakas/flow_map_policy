@@ -24,10 +24,21 @@ Flags:
 import os, sys
 import yaml
 
+_gpu_from_cli = None
+_config_path = None
 for arg in sys.argv[1:]:
     if arg.startswith('--gpu='):
-        os.environ['CUDA_VISIBLE_DEVICES'] = arg.split('=', 1)[1]
-        break
+        _gpu_from_cli = arg.split('=', 1)[1]
+    if arg.startswith('--config='):
+        _config_path = arg.split('=', 1)[1]
+
+if _gpu_from_cli is not None:
+    os.environ['CUDA_VISIBLE_DEVICES'] = _gpu_from_cli
+elif _config_path is not None:
+    with open(_config_path, 'r') as _f:
+        _cfg = yaml.safe_load(_f)
+    if 'training' in _cfg and 'gpu' in _cfg['training']:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(_cfg['training']['gpu'])
 
 if '--benchmark_cpu' in sys.argv or '--benchmark_cpu=True' in sys.argv:
     os.environ['JAX_PLATFORMS'] = 'cpu'

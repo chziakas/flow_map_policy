@@ -7,7 +7,7 @@ env:
 # ─── Training Pipeline ───
 training:
   seed: 0
-  gpu: "0"
+  gpu: "1"
   offline_steps: 1000000
   online_steps: 1000000
   buffer_size: 2000000
