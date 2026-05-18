@@ -1,4 +1,4 @@
-# FMQ: Aligning Flow Map Policies with Optimal Q-Guidance
+# Aligning Flow Map Policies with Optimal Q-Guidance
 
 <p align="center">
   <img src="assets/fmq_overview.gif" width="700"/>
@@ -8,7 +8,7 @@
   <a href="https://arxiv.org/abs/2605.12416"><img src="https://img.shields.io/badge/arXiv-2605.12416-b31b1b.svg"/></a>
 </p>
 
-This repository contains the official code for **"Aligning Flow Map Policies with Optimal Q-Guidance"** (NeurIPS 2026).
+This repository contains the official code for **"Aligning Flow Map Policies with Optimal Q-Guidance"** by Christos Ziakas, Alessandra Russo, and Avishek Joey Bose.
 
 We introduce flow map policies, a novel class of generative policies designed for fast action generation by learning to take arbitrary-size jumps—including one-step jumps—across the generative dynamics of existing flow-based policies. We instantiate flow map policies for offline-to-online reinforcement learning (RL) and formulate online adaptation as a trust-region optimization problem that improves the critic's Q-value while remaining close to the offline policy. We theoretically derive **Flow Map Q-Guidance (FMQ)**, a principled closed-form learning target that is optimal for adapting offline flow map policies under a critic-guided trust-region constraint. We further introduce **Q-Guided Beam Search (QGBS)**, a stochastic flow-map sampler that combines renoising with beam search to enable iterative inference-time refinement.
 
