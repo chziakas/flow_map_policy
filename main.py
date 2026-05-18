@@ -251,6 +251,10 @@ def main(_):
     if FLAGS.config is not None:
         agent_overrides = _apply_yaml_config(FLAGS.config)
         for k, v in agent_overrides.items():
+            if k in config:
+                existing = config[k]
+                if existing is not None:
+                    v = type(existing)(v)
             config[k] = v
         if 'actor_type' in agent_overrides and agent_overrides['actor_type'] == 'qgbs':
             FLAGS.online_actor_type = 'qgbs'

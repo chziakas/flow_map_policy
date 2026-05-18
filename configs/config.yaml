@@ -61,7 +61,7 @@ flow_map:
 
 # ─── Optimizer ───
 optimizer:
-  lr: 3e-4
+  lr: 0.0003
   batch_size: 256
 
 # ─── FMQ Trust-Region Online Adaptation (§3.3) ───
