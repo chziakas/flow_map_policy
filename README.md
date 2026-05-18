@@ -1,0 +1,109 @@
+# FMQ: Aligning Flow Map Policies with Optimal Q-Guidance
+
+<p align="center">
+  <img src="assets/fmq_overview.gif" width="700"/>
+</p>
+
+<p align="center">
+  <a href="https://arxiv.org/abs/2605.12416"><img src="https://img.shields.io/badge/arXiv-2605.12416-b31b1b.svg"/></a>
+</p>
+
+This repository contains the official code for **"Aligning Flow Map Policies with Optimal Q-Guidance"** (NeurIPS 2026).
+
+We introduce flow map policies, a novel class of generative policies designed for fast action generation by learning to take arbitrary-size jumps—including one-step jumps—across the generative dynamics of existing flow-based policies. We instantiate flow map policies for offline-to-online reinforcement learning (RL) and formulate online adaptation as a trust-region optimization problem that improves the critic's Q-value while remaining close to the offline policy. We theoretically derive **Flow Map Q-Guidance (FMQ)**, a principled closed-form learning target that is optimal for adapting offline flow map policies under a critic-guided trust-region constraint. We further introduce **Q-Guided Beam Search (QGBS)**, a stochastic flow-map sampler that combines renoising with beam search to enable iterative inference-time refinement.
+
+## Installation
+
+```bash
+conda create -n fmq python=3.11 -y
+conda activate fmq
+pip install -r requirements.txt
+```
+
+**Prerequisites:**
+- NVIDIA GPU with CUDA 12 support
+- MuJoCo (installed automatically via `mujoco` package)
+
+**Environment data:**
+- OGBench datasets are downloaded automatically on first run via the `ogbench` package.
+- RoboMimic datasets must be downloaded separately; see https://robomimic.github.io/docs/datasets/overview.html
+
+## Usage
+
+**Train FMQ** (1M offline pre-training + 1M online fine-tuning):
+
+```bash
+python main.py \
+  --agent=agents/flow_map_policy.py \
+  --fmq_online \
+  --env_name=cube-triple-play-singletask-task4-v0 \
+  --seed=0 --gpu=0
+```
+
+**Evaluate a trained checkpoint:**
+
+```bash
+python main.py \
+  --agent=agents/flow_map_policy.py \
+  --fmq_online \
+  --eval_only --restore_path=exp/.../params_online.pkl \
+  --env_name=cube-triple-play-singletask-task4-v0 \
+  --gpu=0
+```
+
+**Evaluate with QGBS** (inference-time beam search, Algorithm 2):
+
+```bash
+python main.py \
+  --agent=agents/flow_map_policy.py \
+  --fmq_online \
+  --online_actor_type=qgbs \
+  --agent.qgbs_K=2 --agent.qgbs_B=4 --agent.actor_num_samples=4 \
+  --eval_only --restore_path=exp/.../params_online.pkl \
+  --env_name=cube-triple-play-singletask-task4-v0 \
+  --gpu=0
+```
+
+
+All hyperparameters and their defaults are documented in `agents/flow_map_policy.py:get_config()` and `agents/fmq.py:get_config()`.
+
+## Environments
+
+| Environment | Benchmark | Reward |
+|-------------|-----------|--------|
+| `can-mh-low_dim` | RoboMimic | Dense |
+| `square-mh-low_dim` | RoboMimic | Dense |
+| `cube-double-play-singletask-task{3,4}-v0` | OGBench | Dense |
+| `cube-triple-play-singletask-task{3,4}-v0` | OGBench | Dense |
+| `scene-play-singletask-task{4,5}-v0` | OGBench | Sparse |
+| `humanoidmaze-medium-navigate-singletask-task{3,4}-v0` | OGBench | Sparse |
+| `antmaze-giant-navigate-singletask-task{4,5}-v0` | OGBench | Sparse |
+
+## Structure
+
+```
+├── main.py                 # Training entry point (offline → online)
+├── evaluation.py           # Episodic rollout evaluation
+├── agents/
+│   ├── flow_map_policy.py  # Flow map policy (offline pre-training, §3.2)
+│   ├── fmq.py              # FMQ online fine-tuning (§3.3, Theorem 3.2)
+│   ├── qgbs.py             # Q-Guided Beam Search (§3.4, Algorithm 2)
+│   └── flow_utils.py       # Shared sampling utilities
+├── utils/                  # Networks, datasets, encoders, checkpointing
+└── envs/                   # Environment loading (OGBench, RoboMimic, D4RL)
+```
+
+## Citation
+
+```bibtex
+@article{ziakas2026fmq,
+  title={Aligning Flow Map Policies with Optimal Q-Guidance},
+  author={Ziakas, Christos and Russo, Alessandra and Bose, Avishek Joey},
+  journal={arXiv preprint arXiv:2605.12416},
+  year={2026},
+}
+```
+
+## Acknowledgments
+
+This codebase is built on top of [QC](https://github.com/ColinQiyangLi/qc) (Li et al., 2025) and [FQL](https://github.com/seohongpark/FQL) (Park, Li & Levine, 2024). The [Meta Flow Maps](https://github.com/adh1s/mfm) implementation (Potaptchik et al., 2026) was a useful reference for flow maps.
