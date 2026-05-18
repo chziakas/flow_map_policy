@@ -80,7 +80,9 @@ inference:
   actor_num_samples: 32             # M: beam width / initial candidates
 
 # ─── QGBS: Q-Guided Beam Search (Algorithm 2, §3.4) ───
+# To use: set inference.actor_type to "qgbs" and adjust below.
 qgbs:
+  actor_num_samples: 4              # M: beam width (particles retained per step)
   qgbs_K: 1                         # K: beam search iterations
   qgbs_B: 4                         # B: branches per particle (re-noise copies)
   qgbs_eta: 0.3                     # η: trust-region step size

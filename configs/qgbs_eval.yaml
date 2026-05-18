@@ -1,0 +1,32 @@
+# ─── QGBS Evaluation Config ───
+# Usage: python main.py --config configs/qgbs_eval.yaml --restore_path=exp/.../params_online.pkl
+
+# ─── Environment ───
+env:
+  env_name: "cube-triple-play-singletask-task4-v0"
+  horizon_length: 5
+  sparse: false
+
+# ─── Training Pipeline ───
+training:
+  seed: 0
+  gpu: "0"
+  fmq_online: true
+
+# ─── Evaluation ───
+evaluation:
+  eval_episodes: 50
+  video_episodes: 0
+
+# ─── Inference Action Selection ───
+inference:
+  actor_type: "qgbs"
+  actor_num_samples: 4              # M: beam width
+
+# ─── QGBS: Q-Guided Beam Search (Algorithm 2, §3.4) ───
+qgbs:
+  actor_num_samples: 4              # M: beam width (particles retained per step)
+  qgbs_K: 1                         # K: beam search iterations
+  qgbs_B: 4                         # B: branches per particle (re-noise copies)
+  qgbs_eta: 0.3                     # η: trust-region step size
+  qgbs_snr: 1.5                     # ρ: SNR → t' = ρ/(1+ρ)

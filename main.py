@@ -22,6 +22,7 @@ Flags:
   --horizon_length  Action chunking horizon H (default 5)
 """
 import os, sys
+import yaml
 
 for arg in sys.argv[1:]:
     if arg.startswith('--gpu='):
@@ -100,6 +101,93 @@ flags.DEFINE_bool('restore_base_ckpt', False,
     'Use with --fmq_online --eval_only for offline pretrained checkpoints.')
 flags.DEFINE_bool('skip_offline', False,
     'Skip offline training and restore from --restore_path, then proceed to online phase.')
+flags.DEFINE_string('config', None,
+    'Path to YAML config file. Values override flag defaults; CLI flags override YAML.')
+
+
+def _apply_yaml_config(yaml_path):
+    """Load a YAML config and apply values as flag defaults (CLI flags take precedence)."""
+    with open(yaml_path, 'r') as f:
+        cfg = yaml.safe_load(f)
+
+    _YAML_TO_FLAGS = {
+        'env.env_name': 'env_name',
+        'env.horizon_length': 'horizon_length',
+        'env.sparse': 'sparse',
+        'training.seed': 'seed',
+        'training.gpu': 'gpu',
+        'training.offline_steps': 'offline_steps',
+        'training.online_steps': 'online_steps',
+        'training.buffer_size': 'buffer_size',
+        'training.start_training': 'start_training',
+        'training.utd_ratio': 'utd_ratio',
+        'training.discount': 'discount',
+        'training.fmq_online': 'fmq_online',
+        'logging.wandb_project': 'wandb_project',
+        'logging.run_group': 'run_group',
+        'logging.exp_suffix': 'exp_suffix',
+        'logging.save_dir': 'save_dir',
+        'logging.log_interval': 'log_interval',
+        'logging.eval_interval': 'eval_interval',
+        'logging.save_interval': 'save_interval',
+        'evaluation.eval_episodes': 'eval_episodes',
+        'evaluation.video_episodes': 'video_episodes',
+        'evaluation.video_frame_skip': 'video_frame_skip',
+        'dataset.dataset_proportion': 'dataset_proportion',
+        'dataset.dataset_replace_interval': 'dataset_replace_interval',
+        'dataset.ogbench_dataset_dir': 'ogbench_dataset_dir',
+    }
+
+    _YAML_TO_AGENT = {
+        'model.actor_hidden_dims': 'actor_hidden_dims',
+        'model.value_hidden_dims': 'value_hidden_dims',
+        'model.layer_norm': 'layer_norm',
+        'model.actor_layer_norm': 'actor_layer_norm',
+        'model.num_qs': 'num_qs',
+        'model.q_agg': 'q_agg',
+        'model.encoder': 'encoder',
+        'model.use_fourier_features': 'use_fourier_features',
+        'model.fourier_feature_dim': 'fourier_feature_dim',
+        'model.weight_decay': 'weight_decay',
+        'model.action_chunking': 'action_chunking',
+        'flow_map.flow_map_steps': 'flow_map_steps',
+        'flow_map.flow_map_warmup_steps': 'flow_map_warmup_steps',
+        'flow_map.flow_map_anneal_end_step': 'flow_map_anneal_end_step',
+        'flow_map.distillation_type': 'distillation_type',
+        'optimizer.lr': 'lr',
+        'optimizer.batch_size': 'batch_size',
+        'fmq.fmq_alpha': 'fmq_alpha',
+        'fmq.fmq_sigma_sq': 'fmq_sigma_sq',
+        'fmq.fmq_normalize_grad': 'fmq_normalize_grad',
+        'fmq.fmq_eta_override': 'fmq_eta_override',
+        'fmq.fmq_grad_at_online': 'fmq_grad_at_online',
+        'fmq.fmq_adaptive_eta': 'fmq_adaptive_eta',
+        'fmq.fmq_beta': 'fmq_beta',
+        'inference.actor_type': 'actor_type',
+        'inference.actor_num_samples': 'actor_num_samples',
+        'qgbs.qgbs_K': 'qgbs_K',
+        'qgbs.qgbs_B': 'qgbs_B',
+        'qgbs.qgbs_eta': 'qgbs_eta',
+        'qgbs.qgbs_snr': 'qgbs_snr',
+    }
+
+    agent_overrides = {}
+    for yaml_key, flag_name in _YAML_TO_FLAGS.items():
+        section, key = yaml_key.split('.', 1)
+        if section in cfg and key in cfg[section]:
+            val = cfg[section][key]
+            if val is not None:
+                FLAGS[flag_name].value = val
+
+    for yaml_key, agent_key in _YAML_TO_AGENT.items():
+        section, key = yaml_key.split('.', 1)
+        if section in cfg and key in cfg[section]:
+            val = cfg[section][key]
+            if val is not None:
+                agent_overrides[agent_key] = val
+
+    return agent_overrides
+
 
 class LoggingHelper:
     """Unified logger that writes to both per-prefix CSV files and Weights & Biases.
@@ -159,7 +247,14 @@ def main(_):
         json.dump(flag_dict, f)
 
     config = FLAGS.agent
-    
+
+    if FLAGS.config is not None:
+        agent_overrides = _apply_yaml_config(FLAGS.config)
+        for k, v in agent_overrides.items():
+            config[k] = v
+        if 'actor_type' in agent_overrides and agent_overrides['actor_type'] == 'qgbs':
+            FLAGS.online_actor_type = 'qgbs'
+
     # data loading
     if FLAGS.ogbench_dataset_dir is not None:
         # custom ogbench dataset

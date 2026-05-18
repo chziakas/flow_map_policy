@@ -33,35 +33,27 @@ pip install -r requirements.txt
 **Train FMQ** (1M offline pre-training + 1M online fine-tuning):
 
 ```bash
-python main.py \
-  --agent=agents/flow_map_policy.py \
-  --fmq_online \
-  --env_name=cube-triple-play-singletask-task4-v0 \
-  --seed=0 --gpu=0
+python main.py --config configs/config.yaml
 ```
 
 **Evaluate a trained checkpoint:**
 
 ```bash
-python main.py \
-  --agent=agents/flow_map_policy.py \
-  --fmq_online \
-  --eval_only --restore_path=exp/.../params_online.pkl \
-  --env_name=cube-triple-play-singletask-task4-v0 \
-  --gpu=0
+python main.py --config configs/config.yaml \
+  --eval_only --restore_path=exp/.../params_online.pkl
 ```
 
 **Evaluate with QGBS** (inference-time beam search, Algorithm 2):
 
 ```bash
-python main.py \
-  --agent=agents/flow_map_policy.py \
-  --fmq_online \
-  --online_actor_type=qgbs \
-  --agent.qgbs_K=2 --agent.qgbs_B=4 --agent.actor_num_samples=4 \
-  --eval_only --restore_path=exp/.../params_online.pkl \
-  --env_name=cube-triple-play-singletask-task4-v0 \
-  --gpu=0
+python main.py --config configs/qgbs_eval.yaml \
+  --eval_only --restore_path=exp/.../params_online.pkl
+```
+
+CLI flags override YAML values. For example, to change the environment:
+
+```bash
+python main.py --config configs/config.yaml --env_name=antmaze-giant-navigate-singletask-task4-v0
 ```
 
 
