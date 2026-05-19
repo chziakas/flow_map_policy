@@ -36,28 +36,79 @@ pip install -r requirements.txt
 python main.py --config configs/config.yaml
 ```
 
-**Evaluate a trained checkpoint:**
+**Evaluate a pretrained checkpoint with Best-of-N (M=32):**
 
 ```bash
 python main.py --config configs/config.yaml \
-  --eval_only --restore_path=exp/.../params_online.pkl
+  --eval_only --fmq_online \
+  --restore_path=checkpoints/ctrp4/params_online_sd000.pkl \
+  --env_name=cube-triple-play-singletask-task4-v0 --seed=0
 ```
 
-**Evaluate with QGBS** (inference-time beam search, Algorithm 2):
+**Evaluate a pretrained checkpoint with QGBS (K=1, B=4, M=4):**
 
 ```bash
 python main.py --config configs/qgbs_eval.yaml \
-  --eval_only --restore_path=exp/.../params_online.pkl
+  --eval_only --fmq_online \
+  --restore_path=checkpoints/ctrp4/params_online_sd000.pkl \
+  --env_name=cube-triple-play-singletask-task4-v0 --seed=0
 ```
 
-CLI flags override YAML values. For example, to change the environment:
+**Evaluate all environments and seeds:**
 
 ```bash
-python main.py --config configs/config.yaml --env_name=antmaze-giant-navigate-singletask-task4-v0
+bash scripts/eval_bon.sh    # Best-of-N (M=32)
+bash scripts/eval_qgbs.sh   # QGBS (K=1, B=4, M=4)
 ```
 
 
 All hyperparameters and their defaults are documented in `agents/flow_map_policy.py:get_config()` and `agents/fmq.py:get_config()`.
+
+## Pretrained Checkpoints
+
+Pretrained FMQ checkpoints (5 seeds each) are available on [Hugging Face](https://huggingface.co/christoszi/flow-map-policies):
+
+```bash
+pip install huggingface_hub
+python -c "from huggingface_hub import snapshot_download; snapshot_download('christoszi/flow-map-policies', local_dir='.')"
+```
+
+| Folder | Environment |
+|--------|-------------|
+| `ctrp4/` | `cube-triple-play-singletask-task4-v0` |
+| `ctrp3/` | `cube-triple-play-singletask-task3-v0` |
+| `cdp4/` | `cube-double-play-singletask-task4-v0` |
+| `cdp3/` | `cube-double-play-singletask-task3-v0` |
+| `sc4/` | `scene-play-singletask-task4-v0` |
+| `sc5/` | `scene-play-singletask-task5-v0` |
+| `ag4/` | `antmaze-giant-navigate-singletask-task4-v0` |
+| `ag5/` | `antmaze-giant-navigate-singletask-task5-v0` |
+| `hm3/` | `humanoidmaze-medium-navigate-singletask-task3-v0` |
+| `hm4/` | `humanoidmaze-medium-navigate-singletask-task4-v0` |
+| `can/` | `can-mh-low_dim` |
+| `square/` | `square-mh-low_dim` |
+
+Each folder contains `params_online_sd000.pkl` through `params_online_sd004.pkl`.
+
+## Results
+
+Success rates (mean ± std over 5 seeds) for the pretrained checkpoints:
+
+| Environment | Best-of-N (M=32) | QGBS (K=1, B=4, M=4) |
+|-------------|:-:|:-:|
+| cube-triple-play-task4 | 0.84 ± 0.06 | 0.83 ± 0.05 |
+| cube-triple-play-task3 | 0.77 ± 0.04 | 0.74 ± 0.08 |
+| cube-double-play-task4 | 1.00 ± 0.01 | 0.99 ± 0.01 |
+| cube-double-play-task3 | 1.00 ± 0.00 | 1.00 ± 0.00 |
+| scene-task4 | 0.99 ± 0.02 | 1.00 ± 0.00 |
+| scene-task5 | 0.99 ± 0.01 | 1.00 ± 0.01 |
+| antmaze-giant-task4 | 0.82 ± 0.04 | 0.79 ± 0.04 |
+| antmaze-giant-task5 | 0.91 ± 0.03 | 0.91 ± 0.05 |
+| humanoidmaze-task3 | 0.60 ± 0.06 | 0.58 ± 0.05 |
+| humanoidmaze-task4 | 0.06 ± 0.04 | 0.04 ± 0.04 |
+| can | 0.96 ± 0.01 | 0.98 ± 0.02 |
+| square | 0.94 ± 0.04 | 0.94 ± 0.01 |
+| **IQM** | **0.91** | **0.91** |
 
 ## Environments
 
@@ -76,6 +127,8 @@ All hyperparameters and their defaults are documented in `agents/flow_map_policy
 ```
 ├── main.py                 # Training entry point (offline → online)
 ├── evaluation.py           # Episodic rollout evaluation
+├── configs/                # YAML configuration files
+├── checkpoints/            # Pretrained model weights (5 seeds × 12 envs)
 ├── agents/
 │   ├── flow_map_policy.py  # Flow map policy (offline pre-training, §3.2)
 │   ├── fmq.py              # FMQ online fine-tuning (§3.3, Theorem 3.2)

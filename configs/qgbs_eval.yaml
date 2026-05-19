@@ -1,5 +1,8 @@
 # ─── QGBS Evaluation Config ───
-# Usage: python main.py --config configs/qgbs_eval.yaml --restore_path=exp/.../params_online.pkl
+# Usage: python main.py --config configs/qgbs_eval.yaml \
+#   --eval_only --fmq_online \
+#   --restore_path=checkpoints/ctrp4/params_online_sd000.pkl \
+#   --env_name=cube-triple-play-singletask-task4-v0 --seed=0
 
 # ─── Environment ───
 env:
@@ -17,6 +20,19 @@ training:
 evaluation:
   eval_episodes: 50
   video_episodes: 0
+
+# ─── Model Architecture (must match the checkpoint) ───
+model:
+  actor_hidden_dims: [512, 512, 512, 512]
+  value_hidden_dims: [512, 512, 512, 512]
+  layer_norm: true
+  actor_layer_norm: false
+  num_qs: 2
+  q_agg: "mean"
+  encoder: null
+  use_fourier_features: true
+  fourier_feature_dim: 64
+  action_chunking: true
 
 # ─── Inference Action Selection ───
 inference:

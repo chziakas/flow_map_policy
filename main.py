@@ -187,7 +187,7 @@ def _apply_yaml_config(yaml_path):
         section, key = yaml_key.split('.', 1)
         if section in cfg and key in cfg[section]:
             val = cfg[section][key]
-            if val is not None:
+            if val is not None and not FLAGS[flag_name].present:
                 FLAGS[flag_name].value = val
 
     for yaml_key, agent_key in _YAML_TO_AGENT.items():
