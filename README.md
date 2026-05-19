@@ -6,6 +6,8 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/2605.12416"><img src="https://img.shields.io/badge/arXiv-2605.12416-b31b1b.svg"/></a>
+  <a href="https://huggingface.co/christoszi/flow-map-policies"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Checkpoints-yellow"/></a>
+  <a href="https://christoszi.github.io/fmq"><img src="https://img.shields.io/badge/Project-Page-blue"/></a>
 </p>
 
 This repository contains the official code for **"Aligning Flow Map Policies with Optimal Q-Guidance"** by Christos Ziakas, Alessandra Russo, and Avishek Joey Bose.
