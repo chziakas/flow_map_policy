@@ -35,10 +35,11 @@ pip install -r requirements.txt
 **Train FMQ** (1M offline pre-training + 1M online fine-tuning):
 
 ```bash
-python main.py --config configs/config.yaml
+python main.py --config configs/config.yaml \
+  --env_name=cube-triple-play-singletask-task4-v0 --seed=0
 ```
 
-**Evaluate a pretrained checkpoint with Best-of-N (M=32):**
+**Evaluate a pretrained checkpoint with Best-of-N:**
 
 ```bash
 python main.py --config configs/config.yaml \
@@ -47,7 +48,7 @@ python main.py --config configs/config.yaml \
   --env_name=cube-triple-play-singletask-task4-v0 --seed=0
 ```
 
-**Evaluate a pretrained checkpoint with QGBS (K=1, B=4, M=4):**
+**Evaluate a pretrained checkpoint with QGBS:**
 
 ```bash
 python main.py --config configs/qgbs_eval.yaml \
@@ -55,16 +56,6 @@ python main.py --config configs/qgbs_eval.yaml \
   --restore_path=checkpoints/ctrp4/params_online_sd000.pkl \
   --env_name=cube-triple-play-singletask-task4-v0 --seed=0
 ```
-
-**Evaluate all environments and seeds:**
-
-```bash
-bash scripts/eval_bon.sh    # Best-of-N (M=32)
-bash scripts/eval_qgbs.sh   # QGBS (K=1, B=4, M=4)
-```
-
-
-All hyperparameters and their defaults are documented in `agents/flow_map_policy.py:get_config()` and `agents/fmq.py:get_config()`.
 
 ## Pretrained Checkpoints
 
@@ -91,26 +82,6 @@ python -c "from huggingface_hub import snapshot_download; snapshot_download('chr
 | `square/` | `square-mh-low_dim` |
 
 Each folder contains `params_online_sd000.pkl` through `params_online_sd004.pkl`.
-
-## Results
-
-Success rates (mean ± std over 5 seeds) for the pretrained checkpoints:
-
-| Environment | Best-of-N (M=32) | QGBS (K=1, B=4, M=4) |
-|-------------|:-:|:-:|
-| cube-triple-play-task4 | 0.84 ± 0.06 | 0.83 ± 0.05 |
-| cube-triple-play-task3 | 0.77 ± 0.04 | 0.74 ± 0.08 |
-| cube-double-play-task4 | 1.00 ± 0.01 | 0.99 ± 0.01 |
-| cube-double-play-task3 | 1.00 ± 0.00 | 1.00 ± 0.00 |
-| scene-task4 | 0.99 ± 0.02 | 1.00 ± 0.00 |
-| scene-task5 | 0.99 ± 0.01 | 1.00 ± 0.01 |
-| antmaze-giant-task4 | 0.82 ± 0.04 | 0.79 ± 0.04 |
-| antmaze-giant-task5 | 0.91 ± 0.03 | 0.91 ± 0.05 |
-| humanoidmaze-task3 | 0.60 ± 0.06 | 0.58 ± 0.05 |
-| humanoidmaze-task4 | 0.06 ± 0.04 | 0.04 ± 0.04 |
-| can | 0.96 ± 0.01 | 0.98 ± 0.02 |
-| square | 0.94 ± 0.04 | 0.94 ± 0.01 |
-| **IQM** | **0.91** | **0.91** |
 
 ## Environments
 
